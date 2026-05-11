@@ -3,7 +3,7 @@
 This project aims to follow the Handmade hero series created by Casey Muratori.
 
 > [!NOTE]
-> For further information, please checkout [Handmade Hero][1] or the [Youtube
+> For further information, please checkout [Handmade Hero][1] or the [YouTube
 > playlist][2].
 
 ## License
