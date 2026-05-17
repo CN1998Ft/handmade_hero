@@ -2,5 +2,5 @@ if (-Not (Test-Path ../build)){
     mkdir ../build | Out-Null
 }
 pushd ../build/
-cl -Zi ../code/win_handmade.cpp user32.lib Gdi32.lib
+cl -Zi -FC ../code/win_handmade.cpp user32.lib Gdi32.lib
 popd
