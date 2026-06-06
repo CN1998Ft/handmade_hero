@@ -353,6 +353,10 @@ WinMain(
     LPSTR lpCmdLine,
     int nCmdShow){
 
+    LARGE_INTEGER PerformanceFrequencyResult;
+    QueryPerformanceFrequency(&PerformanceFrequencyResult);
+    int64 PerfCountFrequency = PerformanceFrequencyResult.QuadPart;
+
     Win32LoadXInput();
 
     WNDCLASSA WindowClass = {};
@@ -364,6 +368,7 @@ WinMain(
     WindowClass.hInstance = Instance;
     // WindowClass.hIcon = ;
     WindowClass.lpszClassName = "HandmadeHeroWindowClass";
+
     if (RegisterClass(&WindowClass)){
         HWND Window = CreateWindowEx(
                 0,
@@ -404,11 +409,19 @@ WinMain(
 
             bool32 SoundIsPlaying = false;
 
+            LARGE_INTEGER LastCounter;
+            QueryPerformanceCounter(&LastCounter);
+
+            uint64 LastCycleCount = __rdtsc();
+
             GlobalRunning = true;
             // float XOffset = 0.0f;
             // float YOffset = 0.0f;
 
             while(GlobalRunning){
+                LARGE_INTEGER BeginCounter;
+                QueryPerformanceCounter(&BeginCounter);
+
                 HDC DeviceContext = GetDC(Window);
                 MSG Message;
                 while(PeekMessage(&Message, 0, 0, 0, PM_REMOVE)){
@@ -499,6 +512,24 @@ WinMain(
                 YOffset -= 1;
                 // XOffset += 0.5f;
                 // YOffset += 0.5f;
+
+                uint64 EndCycleCount = __rdtsc();
+
+                LARGE_INTEGER EndCounter;
+                QueryPerformanceCounter(&EndCounter);
+
+                uint64 CyclesElapsed = EndCycleCount - LastCycleCount;
+                int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
+                int32 MSPerFrame = (int32)((1000 * CounterElapsed) / PerfCountFrequency);
+                int32 FPS = (int32)(PerfCountFrequency) / CounterElapsed;
+                int32 MCPF = (int32)(CyclesElapsed / (1000 * 1000));
+
+                char Buffer[256];
+                wsprintf(Buffer, "%dms/f, %df/s %dmc/f\n", MSPerFrame, FPS, MCPF);
+                OutputDebugStringA(Buffer);
+
+                LastCounter = EndCounter;
+                LastCycleCount = EndCycleCount;
             }
         } else {
         }
