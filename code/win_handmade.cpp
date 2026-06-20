@@ -1,8 +1,4 @@
-#include <windows.h>
 #include <stdint.h>
-#include <xinput.h>
-#include <dsound.h>
-#include <math.h>
 
 #define internal static
 #define local_persist static
@@ -23,6 +19,13 @@ typedef uint64_t uint64;
 
 typedef float real32;
 typedef double real64;
+
+#include "handmade.cpp"
+#include <windows.h>
+#include <xinput.h>
+#include <dsound.h>
+#include <math.h>
+
 
 struct win32_offscreen_buffer {
     BITMAPINFO Info;
@@ -136,30 +139,6 @@ internal win32_window_dimension Win32GetWindowDimension(HWND Window){
     return Result;
 }
 
-internal void RenderWeirdGradient(win32_offscreen_buffer *Buffer,
-        int XOffset, int YOffset){
-
-    uint8 *Row = (uint8 *)Buffer->Memory;
-    for (int Y = 0; Y < Buffer->Height; ++Y){
-        uint32 *Pixel = (uint32 *)Row;
-        for (int X = 0; X < Buffer->Width; ++X){
-            /*
-            Little ENDIAN architecture.
-            0x 00 00 00 00
-            */
-            uint8 Blue = (X + XOffset);
-            uint8 Green = (Y + YOffset);
-
-            /*
-                Memory: BB GG RR xx
-                Register: xx RR GG BB
-             */
-
-            *Pixel++ = ((Green << 8) | Blue);
-        }
-        Row += Buffer->Pitch;
-    }
-}
 
 internal void
 Win32ResizeDIBSection(win32_offscreen_buffer *Buffer, int Width, int Height){
@@ -351,8 +330,8 @@ WinMain(
     HINSTANCE Instance,
     HINSTANCE PrevInstance,
     LPSTR lpCmdLine,
-    int nCmdShow){
-
+    int nCmdShow)
+{
     LARGE_INTEGER PerformanceFrequencyResult;
     QueryPerformanceFrequency(&PerformanceFrequencyResult);
     int64 PerfCountFrequency = PerformanceFrequencyResult.QuadPart;
@@ -373,7 +352,7 @@ WinMain(
         HWND Window = CreateWindowEx(
                 0,
                 WindowClass.lpszClassName,
-                "Handmade Hero",
+                "Handmade_Hero_FloatingWindow",
                 WS_OVERLAPPEDWINDOW|WS_VISIBLE,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
@@ -470,7 +449,12 @@ WinMain(
                 // Vibration.wRightMotorSpeed = 6000;
                 // XInputSetState(0, &Vibration);
 
-                RenderWeirdGradient(&GlobalBackBuffer, XOffset, YOffset);
+                game_offscreen_buffer Buffer = {};
+                Buffer.Memory = GlobalBackBuffer.Memory;
+                Buffer.Width = GlobalBackBuffer.Width;
+                Buffer.Height = GlobalBackBuffer.Height;
+                Buffer.Pitch = GlobalBackBuffer.Pitch;
+                GameUpdateAndRender(&Buffer, XOffset, YOffset);
 
                 DWORD PlayCursor;
                 DWORD WriteCursor;
@@ -524,9 +508,11 @@ WinMain(
                 int32 FPS = (int32)(PerfCountFrequency) / CounterElapsed;
                 int32 MCPF = (int32)(CyclesElapsed / (1000 * 1000));
 
+#if 0
                 char Buffer[256];
                 wsprintf(Buffer, "%dms/f, %df/s %dmc/f\n", MSPerFrame, FPS, MCPF);
                 OutputDebugStringA(Buffer);
+#endif
 
                 LastCounter = EndCounter;
                 LastCycleCount = EndCycleCount;

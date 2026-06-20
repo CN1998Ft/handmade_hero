@@ -5,7 +5,7 @@ if ($args.count -eq 0)
         mkdir ../build | Out-Null
     }
     pushd ../build/
-    cl -Zi -FC ../code/win_handmade.cpp user32.lib Gdi32.lib
+    cl -DHANDMADE_WIN32=1 -Zi -FC ../code/win_handmade.cpp user32.lib Gdi32.lib
     popd
 }
 elseif (($args.count -eq 1) -and ($args[0] -eq "clean"))
