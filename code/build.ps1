@@ -1,16 +1,18 @@
 # Probably use pwsh for building in windows
-if ($args.count -eq 0)
-{
-    if (-Not (Test-Path ../build)){
-        mkdir ../build | Out-Null
-    }
-    pushd ../build/
-    cl -DHANDMADE_WIN32=1 -Zi -FC ../code/win_handmade.cpp user32.lib Gdi32.lib
-    popd
+# Create build for compilation
+if (-Not (Test-Path ../build)){
+    mkdir ../build | Out-Null
+    echo '*' > ../build/.gitignore
 }
-elseif (($args.count -eq 1) -and ($args[0] -eq "clean"))
+
+# Actual compilation process
+if (($args.count -eq 1) -and ($args[0] -eq "clean"))
+{
+    rm -Recurse -Force ../build
+}
+else
 {
     pushd ../build/
-    Remove-Item ./*.ilk, ./*.pdb, ./*.exe, ./*.obj, ./*.rdi;
+    cl.exe -DHANDMADE_WIN32=1 -Zi -FC ../code/win32_handmade.cpp user32.lib Gdi32.lib
     popd
 }
